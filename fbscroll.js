@@ -69,6 +69,16 @@ if (typeof jQuery === "undefined") {
         }
 
     });
+    $(document).bind('DOMNodeInserted', function(event) {
+      var $tg = $(event.target);
+      var fun = function () {
+        jQuery('.uiMorePagerPrimary')[1].click();
+      }
+      if ($tg.hasClass('uiMorePagerPrimary')) {
+        setTimeout(fun, 2000);
+        $(event.target).click();
+      }
+    });
 
     start();
 })(jQuery);
