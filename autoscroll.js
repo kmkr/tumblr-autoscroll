@@ -53,6 +53,12 @@ var autoscroll = window.autoscroll || {};
         console.log(evt.keyCode);
 
         switch (evt.keyCode) {
+        	case 33: // pgup
+        		currentPosition -= 250;
+        		break;
+        	case 34: // pgdn
+        		currentPosition += 250;
+        		break;
             case 32: // space
                 if (playing) {
                     stop();
@@ -60,18 +66,20 @@ var autoscroll = window.autoscroll || {};
                     restart();
                 }
                 break;
-            case 38 || 187: // up / plus
+            case 38: // up
+            case 187: // plus
                 if (tick > 10) {
-                	tick /= 10;
+                	tick /= 2;
                 	restart(tick);
                 } else {
 	                scrollInterval++;
                 }
                 console.log("Satt scroll-intervall til %s / %s", scrollInterval, tick);
                 break;
-            case 40 || 189: // down / minus
+            case 40: // down
+            case 189: // minus
             	if (scrollInterval <= 1) {
-            		tick *= 10;
+            		tick *= 2;
             		restart(tick);
             	} else {
 	                scrollInterval = scrollInterval - 1;
