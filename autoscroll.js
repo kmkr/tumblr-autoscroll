@@ -17,48 +17,66 @@ if (typeof jQuery === "undefined") {
  */
 ;(function($){var h=$.scrollTo=function(a,b,c){$(window).scrollTo(a,b,c)};h.defaults={axis:'xy',duration:parseFloat($.fn.jquery)>=1.3?0:1,limit:true};h.window=function(a){return $(window)._scrollable()};$.fn._scrollable=function(){return this.map(function(){var a=this,isWin=!a.nodeName||$.inArray(a.nodeName.toLowerCase(),['iframe','#document','html','body'])!=-1;if(!isWin)return a;var b=(a.contentWindow||a).document||a.ownerDocument||a;return/webkit/i.test(navigator.userAgent)||b.compatMode=='BackCompat'?b.body:b.documentElement})};$.fn.scrollTo=function(e,f,g){if(typeof f=='object'){g=f;f=0}if(typeof g=='function')g={onAfter:g};if(e=='max')e=9e9;g=$.extend({},h.defaults,g);f=f||g.duration;g.queue=g.queue&&g.axis.length>1;if(g.queue)f/=2;g.offset=both(g.offset);g.over=both(g.over);return this._scrollable().each(function(){if(e==null)return;var d=this,$elem=$(d),targ=e,toff,attr={},win=$elem.is('html,body');switch(typeof targ){case'number':case'string':if(/^([+-]=)?\d+(\.\d+)?(px|%)?$/.test(targ)){targ=both(targ);break}targ=$(targ,this);if(!targ.length)return;case'object':if(targ.is||targ.style)toff=(targ=$(targ)).offset()}$.each(g.axis.split(''),function(i,a){var b=a=='x'?'Left':'Top',pos=b.toLowerCase(),key='scroll'+b,old=d[key],max=h.max(d,a);if(toff){attr[key]=toff[pos]+(win?0:old-$elem.offset()[pos]);if(g.margin){attr[key]-=parseInt(targ.css('margin'+b))||0;attr[key]-=parseInt(targ.css('border'+b+'Width'))||0}attr[key]+=g.offset[pos]||0;if(g.over[pos])attr[key]+=targ[a=='x'?'width':'height']()*g.over[pos]}else{var c=targ[pos];attr[key]=c.slice&&c.slice(-1)=='%'?parseFloat(c)/100*max:c}if(g.limit&&/^\d+$/.test(attr[key]))attr[key]=attr[key]<=0?0:Math.min(attr[key],max);if(!i&&g.queue){if(old!=attr[key])animate(g.onAfterFirst);delete attr[key]}});animate(g.onAfter);function animate(a){$elem.animate(attr,f,g.easing,a&&function(){a.call(this,e,g)})}}).end()};h.max=function(a,b){var c=b=='x'?'Width':'Height',scroll='scroll'+c;if(!$(a).is('html,body'))return a[scroll]-$(a)[c.toLowerCase()]();var d='client'+c,html=a.ownerDocument.documentElement,body=a.ownerDocument.body;return Math.max(html[scroll],body[scroll])-Math.min(html[d],body[d])};function both(a){return typeof a=='object'?a:{top:a,left:a}}})(jQuery);
 
+var autoscroll = window.autoscroll || {};
+
 (function($) {
-    $('#logo_index_left, #topbar').hide('slow');
-    $('#tumblr_controls').hide('slow');
+	setInterval(function () {
+	    $('#logo_index_left, #topbar').hide('slow');
+	    $('#tumblr_controls').hide('slow');
+	}, 1000);
 
     var playing = false;
     var currentPosition = $(document).scrollTop() || 0;
     var scrollInterval = 1;
+    var tick = 10;
 
     var scrollToNextPosition = function () {
         currentPosition = currentPosition + scrollInterval;
         $("body").scrollTo( currentPosition, 0 );
     }
 
-    var interval;
-
-    var start = function () {
-        interval = setInterval(scrollToNextPosition, 10);
+    var restart = function (tick) {
+    	if (playing) {
+    		stop();
+    	}
+        autoscroll.scrollInterval = setInterval(scrollToNextPosition, tick);
         playing = true;
     }
+
     var stop = function () {
-        clearInterval(interval);
+        clearInterval(autoscroll.scrollInterval);
         playing = false;
     }
 
     $(document).keydown(function(evt) {
         var keyHandeled = true;
+        console.log(evt.keyCode);
 
         switch (evt.keyCode) {
             case 32: // space
                 if (playing) {
                     stop();
                 } else {
-                    start();
+                    restart();
                 }
                 break;
-            case 38: // up
-                scrollInterval++;
-                console.log("Satt scroll-intervall til %s", scrollInterval);
+            case 38 || 187: // up / plus
+                if (tick > 10) {
+                	tick /= 10;
+                	restart(tick);
+                } else {
+	                scrollInterval++;
+                }
+                console.log("Satt scroll-intervall til %s / %s", scrollInterval, tick);
                 break;
-            case 40: // down
-                scrollInterval = Math.max(scrollInterval - 1, 1);
-                console.log("Satt scroll-intervall til %s", scrollInterval);
+            case 40 || 189: // down / minus
+            	if (scrollInterval <= 1) {
+            		tick *= 10;
+            		restart(tick);
+            	} else {
+	                scrollInterval = scrollInterval - 1;
+            	}
+                console.log("Satt scroll-intervall til %s / %s", scrollInterval, tick);
                 break;
             default:
                 keyHandeled = false;
@@ -70,7 +88,7 @@ if (typeof jQuery === "undefined") {
 
     });
 
-    start();
+    restart(tick);
 })(jQuery);
 
 if (runNoConflict) {
